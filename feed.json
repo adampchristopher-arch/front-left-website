@@ -1,0 +1,164 @@
+{
+    "version": "https://jsonfeed.org/version/1",
+    "title": "Front Left",
+    "description": "",
+    "home_page_url": "https://frontleft.info",
+    "feed_url": "https://frontleft.info/feed.json",
+    "user_comment": "",
+    "icon": "https://frontleft.info/media/website/FL_Circle.png",
+    "author": {
+        "name": "A"
+    },
+    "items": [
+        {
+            "id": "https://frontleft.info/nye-2.html",
+            "url": "https://frontleft.info/nye-2.html",
+            "title": "NYE",
+            "content_html": "\n  <p>\n    \n  </p>",
+            "image": "https://frontleft.info/media/posts/21/12.31.26.jpg",
+            "author": {
+                "name": "A"
+            },
+            "tags": [
+                   "Upcoming"
+            ],
+            "date_published": "2026-11-24T11:10:59+01:00",
+            "date_modified": "2026-11-24T11:10:59+01:00"
+        },
+        {
+            "id": "https://frontleft.info/220826-2.html",
+            "url": "https://frontleft.info/220826-2.html",
+            "title": "22.08.26",
+            "content_html": "\n  <p>\n    \n  </p>",
+            "image": "https://frontleft.info/media/posts/19/08.22.26.png",
+            "author": {
+                "name": "A"
+            },
+            "tags": [
+                   "Archive"
+            ],
+            "date_published": "2026-11-19T09:31:37+01:00",
+            "date_modified": "2026-11-19T09:31:37+01:00"
+        },
+        {
+            "id": "https://frontleft.info/170426-2.html",
+            "url": "https://frontleft.info/170426-2.html",
+            "title": "17.04.26",
+            "content_html": "\n  <p>\n    \n  </p>",
+            "image": "https://frontleft.info/media/posts/18/04.17.2026.png",
+            "author": {
+                "name": "A"
+            },
+            "tags": [
+                   "Archive"
+            ],
+            "date_published": "2026-11-19T09:31:15+01:00",
+            "date_modified": "2026-11-19T09:31:15+01:00"
+        },
+        {
+            "id": "https://frontleft.info/280326.html",
+            "url": "https://frontleft.info/280326.html",
+            "title": "28.03.26",
+            "content_html": "\n  <p>\n    \n  </p>",
+            "image": "https://frontleft.info/media/posts/17/03.28.26.png",
+            "author": {
+                "name": "A"
+            },
+            "tags": [
+                   "Archive"
+            ],
+            "date_published": "2026-11-19T09:30:16+01:00",
+            "date_modified": "2026-11-19T09:30:16+01:00"
+        },
+        {
+            "id": "https://frontleft.info/270226.html",
+            "url": "https://frontleft.info/270226.html",
+            "title": "27.02.26",
+            "content_html": "\n  <p>\n    \n  </p>",
+            "image": "https://frontleft.info/media/posts/13/03.27.26.png",
+            "author": {
+                "name": "A"
+            },
+            "tags": [
+                   "Archive"
+            ],
+            "date_published": "2026-11-19T09:27:21+01:00",
+            "date_modified": "2026-11-19T09:27:21+01:00"
+        },
+        {
+            "id": "https://frontleft.info/280226.html",
+            "url": "https://frontleft.info/280226.html",
+            "title": "28.02.26",
+            "content_html": "\n  <p>\n    \n  </p>",
+            "image": "https://frontleft.info/media/posts/12/02.28.26.png",
+            "author": {
+                "name": "A"
+            },
+            "tags": [
+                   "Archive"
+            ],
+            "date_published": "2026-11-19T09:27:05+01:00",
+            "date_modified": "2026-11-19T09:27:05+01:00"
+        },
+        {
+            "id": "https://frontleft.info/170226.html",
+            "url": "https://frontleft.info/170226.html",
+            "title": "17.02.26",
+            "content_html": "\n  <p>\n    \n  </p>",
+            "image": "https://frontleft.info/media/posts/11/02.17.26.png",
+            "author": {
+                "name": "A"
+            },
+            "tags": [
+                   "Archive"
+            ],
+            "date_published": "2026-11-19T09:26:45+01:00",
+            "date_modified": "2026-11-19T09:26:45+01:00"
+        },
+        {
+            "id": "https://frontleft.info/240126.html",
+            "url": "https://frontleft.info/240126.html",
+            "title": "24.01.26",
+            "content_html": "\n  <p>\n    \n  </p>",
+            "image": "https://frontleft.info/media/posts/10/01.24.26.png",
+            "author": {
+                "name": "A"
+            },
+            "tags": [
+                   "Archive"
+            ],
+            "date_published": "2026-11-19T09:26:28+01:00",
+            "date_modified": "2026-11-19T09:26:28+01:00"
+        },
+        {
+            "id": "https://frontleft.info/050725.html",
+            "url": "https://frontleft.info/050725.html",
+            "title": "05.07.25",
+            "content_html": "\n  <p>\n    \n  </p>",
+            "image": "https://frontleft.info/media/posts/9/07.05.25.png",
+            "author": {
+                "name": "A"
+            },
+            "tags": [
+                   "Archive"
+            ],
+            "date_published": "2026-11-19T09:25:45+01:00",
+            "date_modified": "2026-11-19T09:25:45+01:00"
+        },
+        {
+            "id": "https://frontleft.info/200425.html",
+            "url": "https://frontleft.info/200425.html",
+            "title": "20.04.25",
+            "content_html": "\n  <p>\n    \n  </p>",
+            "image": "https://frontleft.info/media/posts/8/04.20.25.png",
+            "author": {
+                "name": "A"
+            },
+            "tags": [
+                   "Archive"
+            ],
+            "date_published": "2026-11-19T09:25:26+01:00",
+            "date_modified": "2026-11-19T09:26:01+01:00"
+        }
+    ]
+}

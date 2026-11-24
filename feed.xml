@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">
+    <title>Front Left</title>
+    <link href="https://frontleft.info/feed.xml" rel="self" />
+    <link href="https://frontleft.info" />
+    <updated>2026-11-24T11:10:59+01:00</updated>
+    <author>
+        <name>A</name>
+    </author>
+    <id>https://frontleft.info</id>
+
+    <entry>
+        <title>NYE</title>
+        <author>
+            <name>A</name>
+        </author>
+        <link href="https://frontleft.info/nye-2.html"/>
+        <id>https://frontleft.info/nye-2.html</id>
+        <media:content url="https://frontleft.info/media/posts/21/12.31.26.jpg" medium="image" />
+            <category term="Upcoming"/>
+
+        <updated>2026-11-24T11:10:59+01:00</updated>
+            <summary></summary>
+        <content type="html">
+            <![CDATA[
+                    <p><img src="https://frontleft.info/media/posts/21/12.31.26.jpg" class="type:primaryImage" alt="" /></p>
+                
+  <p>
+    
+  </p>
+            ]]>
+        </content>
+    </entry>
+    <entry>
+        <title>22.08.26</title>
+        <author>
+            <name>A</name>
+        </author>
+        <link href="https://frontleft.info/220826-2.html"/>
+        <id>https://frontleft.info/220826-2.html</id>
+        <media:content url="https://frontleft.info/media/posts/19/08.22.26.png" medium="image" />
+            <category term="Archive"/>
+
+        <updated>2026-11-19T09:31:37+01:00</updated>
+            <summary></summary>
+        <content type="html">
+            <![CDATA[
+                    <p><img src="https://frontleft.info/media/posts/19/08.22.26.png" class="type:primaryImage" alt="" /></p>
+                
+  <p>
+    
+  </p>
+            ]]>
+        </content>
+    </entry>
+    <entry>
+        <title>17.04.26</title>
+        <author>
+            <name>A</name>
+        </author>
+        <link href="https://frontleft.info/170426-2.html"/>
+        <id>https://frontleft.info/170426-2.html</id>
+        <media:content url="https://frontleft.info/media/posts/18/04.17.2026.png" medium="image" />
+            <category term="Archive"/>
+
+        <updated>2026-11-19T09:31:15+01:00</updated>
+            <summary></summary>
+        <content type="html">
+            <![CDATA[
+                    <p><img src="https://frontleft.info/media/posts/18/04.17.2026.png" class="type:primaryImage" alt="" /></p>
+                
+  <p>
+    
+  </p>
+            ]]>
+        </content>
+    </entry>
+    <entry>
+        <title>28.03.26</title>
+        <author>
+            <name>A</name>
+        </author>
+        <link href="https://frontleft.info/280326.html"/>
+        <id>https://frontleft.info/280326.html</id>
+        <media:content url="https://frontleft.info/media/posts/17/03.28.26.png" medium="image" />
+            <category term="Archive"/>
+
+        <updated>2026-11-19T09:30:16+01:00</updated>
+            <summary></summary>
+        <content type="html">
+            <![CDATA[
+                    <p><img src="https://frontleft.info/media/posts/17/03.28.26.png" class="type:primaryImage" alt="" /></p>
+                
+  <p>
+    
+  </p>
+            ]]>
+        </content>
+    </entry>
+    <entry>
+        <title>27.02.26</title>
+        <author>
+            <name>A</name>
+        </author>
+        <link href="https://frontleft.info/270226.html"/>
+        <id>https://frontleft.info/270226.html</id>
+        <media:content url="https://frontleft.info/media/posts/13/03.27.26.png" medium="image" />
+            <category term="Archive"/>
+
+        <updated>2026-11-19T09:27:21+01:00</updated>
+            <summary></summary>
+        <content type="html">
+            <![CDATA[
+                    <p><img src="https://frontleft.info/media/posts/13/03.27.26.png" class="type:primaryImage" alt="" /></p>
+                
+  <p>
+    
+  </p>
+            ]]>
+        </content>
+    </entry>
+    <entry>
+        <title>28.02.26</title>
+        <author>
+            <name>A</name>
+        </author>
+        <link href="https://frontleft.info/280226.html"/>
+        <id>https://frontleft.info/280226.html</id>
+        <media:content url="https://frontleft.info/media/posts/12/02.28.26.png" medium="image" />
+            <category term="Archive"/>
+
+        <updated>2026-11-19T09:27:05+01:00</updated>
+            <summary></summary>
+        <content type="html">
+            <![CDATA[
+                    <p><img src="https://frontleft.info/media/posts/12/02.28.26.png" class="type:primaryImage" alt="" /></p>
+                
+  <p>
+    
+  </p>
+            ]]>
+        </content>
+    </entry>
+    <entry>
+        <title>17.02.26</title>
+        <author>
+            <name>A</name>
+        </author>
+        <link href="https://frontleft.info/170226.html"/>
+        <id>https://frontleft.info/170226.html</id>
+        <media:content url="https://frontleft.info/media/posts/11/02.17.26.png" medium="image" />
+            <category term="Archive"/>
+
+        <updated>2026-11-19T09:26:45+01:00</updated>
+            <summary></summary>
+        <content type="html">
+            <![CDATA[
+                    <p><img src="https://frontleft.info/media/posts/11/02.17.26.png" class="type:primaryImage" alt="" /></p>
+                
+  <p>
+    
+  </p>
+            ]]>
+        </content>
+    </entry>
+    <entry>
+        <title>24.01.26</title>
+        <author>
+            <name>A</name>
+        </author>
+        <link href="https://frontleft.info/240126.html"/>
+        <id>https://frontleft.info/240126.html</id>
+        <media:content url="https://frontleft.info/media/posts/10/01.24.26.png" medium="image" />
+            <category term="Archive"/>
+
+        <updated>2026-11-19T09:26:28+01:00</updated>
+            <summary></summary>
+        <content type="html">
+            <![CDATA[
+                    <p><img src="https://frontleft.info/media/posts/10/01.24.26.png" class="type:primaryImage" alt="" /></p>
+                
+  <p>
+    
+  </p>
+            ]]>
+        </content>
+    </entry>
+    <entry>
+        <title>05.07.25</title>
+        <author>
+            <name>A</name>
+        </author>
+        <link href="https://frontleft.info/050725.html"/>
+        <id>https://frontleft.info/050725.html</id>
+        <media:content url="https://frontleft.info/media/posts/9/07.05.25.png" medium="image" />
+            <category term="Archive"/>
+
+        <updated>2026-11-19T09:25:45+01:00</updated>
+            <summary></summary>
+        <content type="html">
+            <![CDATA[
+                    <p><img src="https://frontleft.info/media/posts/9/07.05.25.png" class="type:primaryImage" alt="" /></p>
+                
+  <p>
+    
+  </p>
+            ]]>
+        </content>
+    </entry>
+    <entry>
+        <title>20.04.25</title>
+        <author>
+            <name>A</name>
+        </author>
+        <link href="https://frontleft.info/200425.html"/>
+        <id>https://frontleft.info/200425.html</id>
+        <media:content url="https://frontleft.info/media/posts/8/04.20.25.png" medium="image" />
+            <category term="Archive"/>
+
+        <updated>2026-11-19T09:25:26+01:00</updated>
+            <summary></summary>
+        <content type="html">
+            <![CDATA[
+                    <p><img src="https://frontleft.info/media/posts/8/04.20.25.png" class="type:primaryImage" alt="" /></p>
+                
+  <p>
+    
+  </p>
+            ]]>
+        </content>
+    </entry>
+</feed>
