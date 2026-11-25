@@ -166,7 +166,7 @@ figcaption {font-size:13px;color:var(--muted-foreground);}
 
 
 /* The text occupies the illustration slot without changing surrounding layout. */
-.type-art { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 18px; padding: 65px 28px; overflow: clip; color: var(--foreground); font-family: Impact, "Arial Black", sans-serif; }
+.type-art { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 18px; padding: 65px 28px; overflow: clip; color: var(--foreground); font-family: Impact, "Arial Black", sans-serif; touch-action: none; user-select: none; -webkit-user-select: none; }
 .type-line { width: 100%; text-align: center; font-size: 96px; font-weight: 900; line-height: 1.1; letter-spacing: 0; }
 .type-word { display: inline-block; white-space: nowrap; }
 .type-letter { display: inline-block; position: relative; translate: var(--mouse-x, 0px) var(--mouse-y, 0px); transition: translate 180ms ease-out; }
@@ -403,8 +403,8 @@ body:has(.home-scene) .site-footer { flex: 0 0 auto; }
 /* v39: identical icon and playing-only track title on every screen. */
 .soundcloud-player { position: fixed; left: -10000px; bottom: 0; width: 300px; pointer-events: none; }
 .soundcloud-player iframe { display: block; width: 100%; height: 300px; border: 0; }
-.soundcloud-controls { position: fixed; left: 20px; bottom: calc(var(--footer-h, 47px) + 14px + env(safe-area-inset-bottom, 0px)); z-index: 10; display: flex; align-items: center; gap: 12px; width: min(360px, calc(100vw - 40px)); height: 44px; }
-.soundcloud-toggle { display: grid; place-items: center; flex: 0 0 44px; width: 44px; height: 44px; padding: 10px; border: 1px solid var(--event-accent); border-radius: 50%; background: var(--event-accent); color: var(--event-surface); cursor: pointer; }
+.soundcloud-controls { position: fixed; left: 20px; bottom: calc(var(--footer-h, 47px) + 6px + env(safe-area-inset-bottom, 0px)); z-index: 10; display: flex; align-items: center; gap: 12px; width: min(360px, calc(100vw - 40px)); height: 40px; }
+.soundcloud-toggle { display: grid; place-items: center; flex: 0 0 40px; width: 40px; height: 40px; padding: 7px; border: 1px solid var(--event-accent); border-radius: 50%; background: var(--event-accent); color: var(--event-surface); cursor: pointer; }
 .soundcloud-toggle svg { width: 24px; height: 24px; fill: currentColor; grid-area: 1 / 1; }
 .soundcloud-toggle .soundcloud-pause-icon { display: none; }
 .soundcloud-toggle[aria-pressed="true"] .soundcloud-play-icon { display: none; }

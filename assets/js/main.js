@@ -55,6 +55,16 @@
   let points = [];
   let frame = 0;
   let pointer = null;
+  let touchId = null;
+  function stop() {
+   const id = touchId;
+   touchId = null;
+   pointer = null;
+   if (frame) cancelAnimationFrame(frame);
+   frame = 0;
+   if (id !== null && art.hasPointerCapture?.(id)) art.releasePointerCapture(id);
+   reset();
+  }
   function reset() {
    letters.forEach(letter => {
     letter.style.setProperty('--mouse-x', '0px');
@@ -89,22 +99,37 @@
     const dx = point.x - pointer.x;
     const dy = point.y - pointer.y;
     const distance = Math.hypot(dx, dy);
-    const force = distance < 145 ? (1 - distance / 145) * 65 : 0;
+    const radius = pointer.touch ? 95 : 145;
+    const strength = pointer.touch ? 28 : 65;
+    const force = distance < radius ? (1 - distance / radius) * strength : 0;
     const angle = Math.atan2(dy, dx);
     letter.style.setProperty('--mouse-x', `${Math.cos(angle) * force}px`);
     letter.style.setProperty('--mouse-y', `${Math.sin(angle) * force}px`);
    });
   }
-  document.addEventListener('pointermove', event => {
-   if (motion.matches || event.pointerType === 'touch') return;
-   pointer = { x: event.clientX, y: event.clientY };
+  function track(event) {
+   if (motion.matches) return;
+   if (event.pointerType === 'touch' && event.pointerId !== touchId) return;
+   if (event.pointerType !== 'touch' && touchId !== null) return;
+   pointer = { x: event.clientX, y: event.clientY, touch: event.pointerType === 'touch' };
    if (!frame) frame = requestAnimationFrame(move);
+  }
+  art.addEventListener('pointerdown', event => {
+   if (motion.matches || event.pointerType !== 'touch' || touchId !== null) return;
+   touchId = event.pointerId;
+   art.setPointerCapture?.(touchId);
+   track(event);
   });
-  document.addEventListener('pointerleave', () => { pointer = null; reset(); });
-  window.addEventListener('blur', () => { pointer = null; reset(); });
+  document.addEventListener('pointermove', track);
+  function release(event) { if (event.pointerId === touchId) stop(); }
+  document.addEventListener('pointerup', release);
+  document.addEventListener('pointercancel', release);
+  art.addEventListener('lostpointercapture', release);
+  document.addEventListener('pointerleave', () => { if (touchId === null) stop(); });
+  window.addEventListener('blur', stop);
   window.addEventListener('resize', measure);
   window.addEventListener('scroll', measure, { passive: true });
-  motion.addEventListener('change', reset);
+  motion.addEventListener('change', stop);
   if (typeof ResizeObserver !== 'undefined') new ResizeObserver(measure).observe(art);
   measure();
   document.fonts?.ready.then(measure);
