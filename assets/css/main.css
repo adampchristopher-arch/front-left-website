@@ -462,3 +462,9 @@ html.photo-viewer-open { overflow: hidden; }
 @media (max-width: 700px) { .photo-viewer { padding: 16px; } .photo-viewer-image { max-height: 78svh; } .photo-viewer-caption { font-size: 11px; } }
 @media (prefers-reduced-motion: no-preference) { .photo-viewer.is-open { animation: photo-viewer-in 160ms ease; } }
 @keyframes photo-viewer-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* v60: Team page editor galleries keep the original square three-column grid. */
+.team-page .content-entry .gallery {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;}
+.team-page .content-entry .gallery__item {width:auto;margin:0;min-width:0;}
+.team-page .content-entry .gallery__item img {display:block;width:100%;height:auto;aspect-ratio:1;object-fit:cover;}
+@media (max-width: 700px) { .team-page .content-entry .gallery {gap:8px;} }
