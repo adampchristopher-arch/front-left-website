@@ -122,35 +122,117 @@
   window.addEventListener('load', set);
   window.addEventListener('resize', set);
 })();
-/* SoundCloud player: build a clean, encoded embed from the pasted link */
+/* SoundCloud: shared Widget API for visible desktop and off-screen mobile playback. */
 (function () {
-  function init() {
-    document.querySelectorAll('.soundcloud-player[data-soundcloud]').forEach(function (box) {
-      var raw = (box.getAttribute('data-soundcloud') || '').trim();
-      var m = raw.match(/src="([^"]+)"/); if (m) raw = m[1];
-      try {
-        var u = new URL(raw);
-        if (u.hostname === 'w.soundcloud.com') { raw = u.searchParams.get('url') || raw; u = new URL(raw); }
-        raw = u.origin + u.pathname;
-      } catch (e) { return; }
-      var f = document.createElement('iframe');
-      f.title = 'SoundCloud player'; f.allow = 'autoplay; encrypted-media';
-      f.setAttribute('scrolling', 'no'); f.setAttribute('frameborder', 'no');
-      f.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(raw) + '&color=%23c6ff00&auto_play=' + (box.dataset.autoplay ? 'true' : 'false') + '&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true';
-      box.appendChild(f);
-      if (box.dataset.autoplay) {
-        var s = document.createElement('script'); s.src = 'https://w.soundcloud.com/player/api.js';
-        s.onload = function () {
-          var w = window.SC && SC.Widget(f), started = false;
-          if (!w) return;
-          w.bind(SC.Widget.Events.PLAY, function () { started = true; });
-          w.bind(SC.Widget.Events.READY, function () { w.play(); });
-          var kick = function () { if (!started) w.play(); ['pointerdown','keydown','touchstart'].forEach(function (e) { document.removeEventListener(e, kick, true); }); };
-          ['pointerdown','keydown','touchstart'].forEach(function (e) { document.addEventListener(e, kick, true); });
-        };
-        document.head.appendChild(s);
-      }
+  var apiPromise;
+  function loadApi() {
+    if (window.SC && window.SC.Widget) return Promise.resolve(window.SC);
+    if (!apiPromise) apiPromise = new Promise(function (resolve, reject) {
+      var script = document.createElement('script');
+      script.src = 'https://w.soundcloud.com/player/api.js';
+      script.onload = function () { if (window.SC && window.SC.Widget) resolve(window.SC); else reject(new Error('Widget unavailable')); };
+      script.onerror = function () { reject(new Error('Widget unavailable')); };
+      document.head.appendChild(script);
     });
+    return apiPromise;
   }
+  function build(box) {
+    if (box.dataset.scBuilt) return;
+    box.dataset.scBuilt = '1';
+    var button = document.querySelector('.soundcloud-toggle');
+    var status = document.querySelector('.soundcloud-status');
+    var track = document.querySelector('.soundcloud-track');
+    var mobile = window.matchMedia('(max-width: 700px)');
+    var ready = false, playing = false, pending = 0, widget;
+    var titleRequest = 0;
+    function updateTrack() {
+      if (!track) return;
+      track.hidden = !playing || !track.textContent;
+      if (!playing || !widget) { titleRequest++; return; }
+      var request = ++titleRequest;
+      widget.getCurrentSound(function (sound) {
+        if (request !== titleRequest || !playing) return;
+        var title = sound && typeof sound.title === 'string' ? sound.title.trim() : '';
+        track.textContent = title;
+        track.title = title;
+        track.hidden = !title;
+      });
+    }
+    function label(text) {
+      if (button) { button.setAttribute('aria-label', text); button.title = text; }
+    }
+    function clearPending() {
+      clearTimeout(pending);
+      if (button) button.removeAttribute('aria-busy');
+    }
+    function state(isPlaying) {
+      clearPending(); playing = isPlaying;
+      if (button) button.setAttribute('aria-pressed', String(isPlaying));
+      label(isPlaying ? 'Pause music' : 'Play music');
+      if (status) status.textContent = isPlaying ? 'Music playing' : 'Music paused';
+      updateTrack();
+    }
+    function unavailable() {
+      ready = false; playing = false; titleRequest++; clearPending();
+      if (track) track.hidden = true;
+      if (button) button.setAttribute('aria-pressed', 'false');
+      if (button) button.disabled = true;
+      label('Music unavailable');
+      if (status) status.textContent = 'Music unavailable';
+    }
+    var raw = (box.getAttribute('data-soundcloud') || '').trim();
+    var match = raw.match(/src=["']([^"']+)["']/i);
+    if (match) raw = match[1].replace(/&amp;/g, '&');
+    try {
+      var url = new URL(raw);
+      if (url.hostname === 'w.soundcloud.com') { raw = url.searchParams.get('url') || raw; url = new URL(raw); }
+      if (url.protocol !== 'https:' || !/(^|\.)soundcloud\.com$/.test(url.hostname)) throw new Error('Invalid SoundCloud link');
+      raw = url.origin + url.pathname;
+    } catch (error) { unavailable(); return; }
+    var frame = document.createElement('iframe');
+    frame.title = 'SoundCloud player'; frame.allow = 'autoplay; encrypted-media';
+    frame.setAttribute('scrolling', 'no'); frame.setAttribute('frameborder', 'no');
+    box.setAttribute('aria-hidden', 'true'); frame.tabIndex = -1;
+    var autoplay = Boolean(box.dataset.autoplay) && !mobile.matches;
+    frame.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(raw) + '&color=%23c6ff00&auto_play=' + autoplay + '&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true';
+    box.appendChild(frame);
+    var loadingTimer = setTimeout(unavailable, 30000);
+    loadApi().then(function (SC) {
+      widget = SC.Widget(frame);
+      widget.bind(SC.Widget.Events.PLAY, function () { state(true); });
+      widget.bind(SC.Widget.Events.PAUSE, function () { state(false); });
+      widget.bind(SC.Widget.Events.FINISH, function () { state(false); });
+      widget.bind(SC.Widget.Events.ERROR, function () { clearTimeout(loadingTimer); unavailable(); });
+      widget.bind(SC.Widget.Events.READY, function () {
+        clearTimeout(loadingTimer); ready = true;
+        if (button) button.disabled = false;
+        state(false);
+        widget.isPaused(function (paused) { state(!paused); });
+        if (autoplay && !mobile.matches) widget.play();
+      });
+      if (button) button.addEventListener('click', function () {
+        if (!ready || !widget) return;
+        clearPending();
+        if (playing) widget.pause();
+        else {
+          button.setAttribute('aria-busy', 'true');
+          widget.play();
+          pending = setTimeout(function () {
+            clearPending();
+            if (!playing) { label('Retry playing music'); if (status) status.textContent = 'Playback did not start. Tap to retry.'; }
+          }, 8000);
+        }
+      });
+      if (autoplay) {
+        function kick() {
+          if (!ready || mobile.matches) return;
+          if (!playing) widget.play();
+          ['pointerdown', 'keydown', 'touchstart'].forEach(function (event) { document.removeEventListener(event, kick, true); });
+        }
+        ['pointerdown', 'keydown', 'touchstart'].forEach(function (event) { document.addEventListener(event, kick, true); });
+      }
+    }).catch(function () { clearTimeout(loadingTimer); unavailable(); });
+  }
+  function init() { document.querySelectorAll('.soundcloud-player[data-soundcloud]').forEach(build); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
