@@ -28,12 +28,182 @@
  window.addEventListener('resize', () => {if(window.innerWidth > 700 && !menu.hidden) setOpen(false);});
 })();
 
+/* v51: modules that must re-attach after a content swap register here. */
+window.flPageReady = window.flPageReady || [];
+window.flRunPageReady = function () {
+ (window.flPageReady || []).forEach(function (fn) { try { fn(); } catch (error) { /* a broken module must not stop browsing */ } });
+};
+
+/* v51: internal links swap only the content area, so the layout — and the music frame inside it — never reloads. */
+(function () {
+ if (!(window.history && window.history.pushState && window.fetch && window.DOMParser)) return;
+ if (!document.querySelector('.soundcloud-player[data-sitewide="true"]')) return;
+ var main = document.getElementById('main');
+ if (!main) return;
+ var DOWNLOAD = /\.(?:pdf|zip|rar|7z|gz|tar|jpe?g|png|gif|webp|avif|svg|ico|mp3|wav|ogg|m4a|flac|mp4|mov|webm|txt|rtf|docx?|xlsx?|pptx?|csv|json|xml|rss|atom|webmanifest|apk|exe|dmg)$/i;
+ var key = 0, scrolls = {}, busy = false;
+ function remember() { scrolls[key] = window.scrollY || window.pageYOffset || 0; }
+ function internalUrl(link) {
+  if (link.target && link.target !== '_self') return null;
+  if (link.hasAttribute('download')) return null;
+  if (/\bexternal\b/i.test(link.getAttribute('rel') || '')) return null;
+  var href = link.getAttribute('href');
+  if (!href || href.charAt(0) === '#') return null;
+  if (/^(?:mailto:|tel:|sms:|callto:|facetime:|javascript:|data:|blob:)/i.test(href)) return null;
+  var url;
+  try { url = new URL(href, document.baseURI); } catch (error) { return null; }
+  if (url.origin !== window.location.origin) return null;
+  if (DOWNLOAD.test(url.pathname)) return null;
+  if (url.pathname === window.location.pathname && url.search === window.location.search) return null;
+  return url;
+ }
+ function apply(html) {
+  var parsed = new DOMParser().parseFromString(html, 'text/html');
+  var fresh = parsed.getElementById('main');
+  if (!fresh) return false;
+  /* A parsed document is not a live one: noscript markup arrives as real elements and embedded scripts never run, so those pages keep their normal load. */
+  Array.prototype.forEach.call(fresh.querySelectorAll('noscript'), function (node) { node.remove(); });
+  if (fresh.querySelector('script')) return false;
+  var viewer = document.querySelector('.photo-viewer');
+  if (viewer && viewer.classList.contains('is-open')) {
+   viewer.classList.remove('is-open');
+   document.documentElement.classList.remove('photo-viewer-open');
+  }
+  main.replaceWith(fresh);
+  main = fresh;
+  document.title = parsed.title || document.title;
+  return true;
+ }
+ function landed(url, restored) {
+  var hash = '';
+  try { hash = url.hash ? decodeURIComponent(url.hash.slice(1)) : ''; } catch (error) { hash = url.hash.slice(1); }
+  var anchor = hash ? document.getElementById(hash) : null;
+  if (anchor) anchor.scrollIntoView();
+  else if (restored) window.scrollTo(0, restored);
+  else window.scrollTo(0, 0);
+  window.flRunPageReady();
+  busy = false;
+ }
+ function navigate(url, push, restored) {
+  if (busy) { window.location.href = url.href; return; }
+  busy = true;
+  remember();
+  window.fetch(url.href, { credentials: 'same-origin', headers: { Accept: 'text/html' } })
+   .then(function (response) {
+    if (!response.ok) throw new Error('unavailable');
+    if ((response.headers.get('content-type') || '').indexOf('text/html') === -1) throw new Error('not a page');
+    return response.text();
+   })
+   .then(function (html) {
+    if (!apply(html)) throw new Error('unexpected page');
+    if (push) window.history.pushState({ fl: ++key }, '', url);
+    landed(url, push ? 0 : restored);
+   })
+   .catch(function () { busy = false; window.location.href = url.href; });
+ }
+ document.addEventListener('click', function (event) {
+  if (event.defaultPrevented || event.button !== 0) return;
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  var link = event.target && event.target.closest ? event.target.closest('a[href]') : null;
+  if (!link || link.closest('.gallery') || link.closest('.photo-viewer')) return;
+  var url = internalUrl(link);
+  if (!url) return;
+  event.preventDefault();
+  navigate(url, true, 0);
+ });
+ window.addEventListener('popstate', function (event) {
+  var state = event.state;
+  var next = state && typeof state.fl === 'number' ? state.fl : 0;
+  remember();
+  key = next;
+  navigate(new URL(window.location.href), false, scrolls[next] || 0);
+ });
+ window.history.replaceState({ fl: 0 }, '', window.location.href);
+})();
+
 /* Independent of navigation so the fallback also works without menus. */
 (() => {
- function initializeType() {
-  const art = document.querySelector('.type-art');
+ const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+ let art = null, lines = [], letters = [], points = [], frame = 0, pointer = null, touchId = null, observer = null;
+ function stop() {
+  const id = touchId;
+  touchId = null;
+  pointer = null;
+  if (frame) cancelAnimationFrame(frame);
+  frame = 0;
+  if (id !== null && art && art.hasPointerCapture?.(id)) art.releasePointerCapture(id);
+  reset();
+ }
+ function reset() {
+  letters.forEach(letter => {
+   letter.style.setProperty('--mouse-x', '0px');
+   letter.style.setProperty('--mouse-y', '0px');
+  });
+ }
+ function measure() {
   if (!art) return;
-  const lines = [...art.querySelectorAll('.type-line')];
+  reset();
+  const maximum = window.innerWidth <= 700 ? 28 : 96;
+  lines.forEach(line => {
+   line.style.fontSize = maximum + 'px';
+   line.style.whiteSpace = 'nowrap';
+   const width = line.getBoundingClientRect().width;
+   const range = document.createRange();
+   range.selectNodeContents(line);
+   const textWidth = range.getBoundingClientRect().width;
+   if (textWidth > width && textWidth > 0) line.style.fontSize = (maximum * width / textWidth * 0.98) + 'px';
+  });
+  points = letters.map(letter => {
+   const rect = letter.getBoundingClientRect();
+   const x = parseFloat(letter.style.getPropertyValue('--mouse-x')) || 0;
+   const y = parseFloat(letter.style.getPropertyValue('--mouse-y')) || 0;
+   return { x: rect.left + rect.width / 2 - x, y: rect.top + rect.height / 2 - y };
+  });
+ }
+ function move() {
+  frame = 0;
+  if (!pointer || motion.matches) return;
+  letters.forEach((letter, index) => {
+   const point = points[index];
+   if (!point) return;
+   const dx = point.x - pointer.x;
+   const dy = point.y - pointer.y;
+   const distance = Math.hypot(dx, dy);
+   const radius = pointer.touch ? 95 : 145;
+   const strength = pointer.touch ? 28 : 65;
+   const force = distance < radius ? (1 - distance / radius) * strength : 0;
+   const angle = Math.atan2(dy, dx);
+   letter.style.setProperty('--mouse-x', `${Math.cos(angle) * force}px`);
+   letter.style.setProperty('--mouse-y', `${Math.sin(angle) * force}px`);
+  });
+ }
+ function track(event) {
+  if (motion.matches) return;
+  if (event.pointerType === 'touch' && event.pointerId !== touchId) return;
+  if (event.pointerType !== 'touch' && touchId !== null) return;
+  pointer = { x: event.clientX, y: event.clientY, touch: event.pointerType === 'touch' };
+  if (!frame) frame = requestAnimationFrame(move);
+ }
+ function release(event) { if (event.pointerId === touchId) stop(); }
+ /* Listeners on the document belong to the module, not to one piece of artwork, so swapping pages cannot stack copies of them. */
+ document.addEventListener('pointermove', track);
+ document.addEventListener('pointerup', release);
+ document.addEventListener('pointercancel', release);
+ document.addEventListener('pointerleave', () => { if (touchId === null) stop(); });
+ window.addEventListener('blur', stop);
+ window.addEventListener('resize', measure);
+ window.addEventListener('scroll', measure, { passive: true });
+ motion.addEventListener('change', stop);
+ function initializeType() {
+  const node = document.querySelector('.type-art');
+  if (!node) {
+   if (art) { stop(); art = null; lines = []; letters = []; points = []; if (observer) { observer.disconnect(); observer = null; } }
+   return;
+  }
+  if (node.dataset.typeReady) return;
+  node.dataset.typeReady = '1';
+  art = node;
+  lines = [...art.querySelectorAll('.type-line')];
   for (const line of lines) {
    const words = line.textContent.trim().split(/\s+/);
    line.replaceChildren();
@@ -50,90 +220,20 @@
     line.append(span);
    });
   }
-  const letters = [...art.querySelectorAll('.type-letter')];
-  const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  let points = [];
-  let frame = 0;
-  let pointer = null;
-  let touchId = null;
-  function stop() {
-   const id = touchId;
-   touchId = null;
-   pointer = null;
-   if (frame) cancelAnimationFrame(frame);
-   frame = 0;
-   if (id !== null && art.hasPointerCapture?.(id)) art.releasePointerCapture(id);
-   reset();
-  }
-  function reset() {
-   letters.forEach(letter => {
-    letter.style.setProperty('--mouse-x', '0px');
-    letter.style.setProperty('--mouse-y', '0px');
-   });
-  }
-  function measure() {
-   reset();
-   const maximum = window.innerWidth <= 700 ? 28 : 96;
-   lines.forEach(line => {
-    line.style.fontSize = maximum + 'px';
-    line.style.whiteSpace = 'nowrap';
-    const width = line.getBoundingClientRect().width;
-    const range = document.createRange();
-    range.selectNodeContents(line);
-    const textWidth = range.getBoundingClientRect().width;
-    if (textWidth > width && textWidth > 0) line.style.fontSize = (maximum * width / textWidth * 0.98) + 'px';
-   });
-   points = letters.map(letter => {
-    const rect = letter.getBoundingClientRect();
-    const x = parseFloat(letter.style.getPropertyValue('--mouse-x')) || 0;
-    const y = parseFloat(letter.style.getPropertyValue('--mouse-y')) || 0;
-    return { x: rect.left + rect.width / 2 - x, y: rect.top + rect.height / 2 - y };
-   });
-  }
-  function move() {
-   frame = 0;
-   if (!pointer || motion.matches) return;
-   letters.forEach((letter, index) => {
-    const point = points[index];
-    if (!point) return;
-    const dx = point.x - pointer.x;
-    const dy = point.y - pointer.y;
-    const distance = Math.hypot(dx, dy);
-    const radius = pointer.touch ? 95 : 145;
-    const strength = pointer.touch ? 28 : 65;
-    const force = distance < radius ? (1 - distance / radius) * strength : 0;
-    const angle = Math.atan2(dy, dx);
-    letter.style.setProperty('--mouse-x', `${Math.cos(angle) * force}px`);
-    letter.style.setProperty('--mouse-y', `${Math.sin(angle) * force}px`);
-   });
-  }
-  function track(event) {
-   if (motion.matches) return;
-   if (event.pointerType === 'touch' && event.pointerId !== touchId) return;
-   if (event.pointerType !== 'touch' && touchId !== null) return;
-   pointer = { x: event.clientX, y: event.clientY, touch: event.pointerType === 'touch' };
-   if (!frame) frame = requestAnimationFrame(move);
-  }
+  letters = [...art.querySelectorAll('.type-letter')];
   art.addEventListener('pointerdown', event => {
    if (motion.matches || event.pointerType !== 'touch' || touchId !== null) return;
    touchId = event.pointerId;
    art.setPointerCapture?.(touchId);
    track(event);
   });
-  document.addEventListener('pointermove', track);
-  function release(event) { if (event.pointerId === touchId) stop(); }
-  document.addEventListener('pointerup', release);
-  document.addEventListener('pointercancel', release);
   art.addEventListener('lostpointercapture', release);
-  document.addEventListener('pointerleave', () => { if (touchId === null) stop(); });
-  window.addEventListener('blur', stop);
-  window.addEventListener('resize', measure);
-  window.addEventListener('scroll', measure, { passive: true });
-  motion.addEventListener('change', stop);
-  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(measure).observe(art);
+  if (observer) observer.disconnect();
+  if (typeof ResizeObserver !== 'undefined') { observer = new ResizeObserver(measure); observer.observe(art); }
   measure();
   document.fonts?.ready.then(measure);
  }
+ (window.flPageReady = window.flPageReady || []).push(initializeType);
  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initializeType, { once: true });
  else initializeType();
 })();
@@ -144,6 +244,7 @@
     if (f) document.documentElement.style.setProperty('--footer-h', Math.round(f.getBoundingClientRect().height) + 'px');
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', set, { once: true }); else set();
+  (window.flPageReady = window.flPageReady || []).push(set);
   window.addEventListener('load', set);
   window.addEventListener('resize', set);
 })();
@@ -259,5 +360,6 @@
     }).catch(function () { clearTimeout(loadingTimer); unavailable(); });
   }
   function init() { document.querySelectorAll('.soundcloud-player[data-soundcloud]').forEach(build); }
+  (window.flPageReady = window.flPageReady || []).push(init);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

@@ -5,8 +5,9 @@ a { color: inherit; text-decoration: none; }
 button,a { -webkit-tap-highlight-color: transparent; }
 a:focus-visible { outline: 2px solid var(--accent); outline-offset: 6px; }
 .site-shell { position: relative; min-height: 100svh; isolation: isolate; }
-.backdrop { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 48%; z-index: -3; }
-.photo-veil { position: fixed; inset: 0; background: var(--photo-veil); z-index: -2; }
+/* v49: the backdrop keeps a scroll-stable height so the photo never rescales when the browser bar hides. */
+.backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; height: 100lvh; object-fit: cover; object-position: center 48%; z-index: -3; }
+.photo-veil { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; height: 100lvh; background: var(--photo-veil); z-index: -2; }
 .site-header { position: absolute; inset: 0 0 auto; display: flex; align-items: flex-start; justify-content: space-between; padding: 23px 30px; z-index: 20; }
 .brand { display: block; width: 78px; height: 80px; margin: -18px 0 0 -10px; }
 .brand img { width: 100%; height: 100%; object-fit: contain; }
@@ -438,3 +439,22 @@ body:not(:has(.home-scene)) .site-footer { padding-top: 16px; padding-bottom: 20
   .upcoming-events .events-collage { padding-top: 0; }
   .upcoming-events .event-poster { flex: 0 1 80%; max-width: 368px; margin-inline: auto; }
 }
+
+/* v50: gallery photos resist right-click saving, dragging and long-press. */
+.content-entry .gallery__item img, .gallery-featured img {
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-user-drag: none;
+  pointer-events: none;
+}
+
+/* v50: photos open in the theme's own viewer, which has no download control. */
+.photo-viewer { position: fixed; inset: 0; z-index: 120; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 24px; background: var(--panel-veil); }
+.photo-viewer.is-open { display: flex; }
+.photo-viewer-image { display: block; max-width: min(100%, 1400px); max-height: 82svh; width: auto; height: auto; object-fit: contain; }
+.photo-viewer-caption { margin: 0; font-size: 13px; color: var(--muted-foreground); text-align: center; }
+.photo-viewer-close { position: absolute; top: 18px; right: 22px; width: 44px; height: 44px; border: 1px solid var(--border); border-radius: 4px; background: transparent; color: var(--foreground); font: inherit; font-size: 24px; line-height: 1; cursor: pointer; }
+.photo-viewer-close:hover { color: var(--nav-active); border-color: var(--nav-active); }
+.photo-viewer-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+html.photo-viewer-open { overflow: hidden; }
+@media (max-width: 700px) { .photo-viewer { padding: 16px; } .photo-viewer-image { max-height: 78svh; } .photo-viewer-caption { font-size: 11px; } }
+@media (prefers-reduced-motion: no-preference) { .photo-viewer.is-open { animation: photo-viewer-in 160ms ease; } }
+@keyframes photo-viewer-in { from { opacity: 0; } to { opacity: 1; } }
