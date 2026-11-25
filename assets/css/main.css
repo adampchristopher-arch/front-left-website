@@ -274,13 +274,12 @@ figcaption {font-size:13px;color:var(--muted-foreground);}
 
 /* ARROW */
 
-.event-spot .ticket-button::after {
-  content: "↗";
+.event-spot .homepage-ticket-arrow {
   float: right;
-
+  display: block;
+  width: 16px;
+  height: 16px;
   color: var(--event-accent);
-  font-size: 16px;
-  line-height: 0.8;
 }
 
 /* HOVER */
@@ -291,8 +290,8 @@ figcaption {font-size:13px;color:var(--muted-foreground);}
   color: var(--event-surface);
 }
 
-.event-spot .ticket-button:hover::after,
-.event-spot .ticket-button:focus-visible::after {
+.event-spot .ticket-button:hover .homepage-ticket-arrow,
+.event-spot .ticket-button:focus-visible .homepage-ticket-arrow {
   color: var(--event-surface);
 }
 
@@ -424,3 +423,18 @@ body:not(:has(.home-scene)) main { flex: 1 0 auto; }
 .events-page + .site-footer, .team-page + .site-footer, main > .content-page + .site-footer, .site-footer { margin-top: 0; }
 body:not(:has(.home-scene)) .site-footer { padding-top: 16px; padding-bottom: 20px; }
 @media (max-width: 700px) { .content-page, .events-page, .team-page { padding-bottom: 24px !important; } }
+
+/* v44: upcoming poster arrows keep the desktop shape on phones. */
+.upcoming-events .event-poster-arrow { display: block; width: 24px; height: 24px; flex: 0 0 24px; }
+@media (max-width: 700px) {
+  .upcoming-events .event-poster-caption { min-height: 40px; padding: 6px 8px; gap: 6px; align-items: center; }
+  .upcoming-events .event-poster-caption h3 { min-width: 0; }
+}
+
+/* v46: phones get one large upcoming poster with no headroom above it. */
+@media (max-width: 700px) {
+  .events-page { padding-top: 86px; }
+  .upcoming-events .events-section-title { margin-bottom: 22px; }
+  .upcoming-events .events-collage { padding-top: 0; }
+  .upcoming-events .event-poster { flex: 0 1 80%; max-width: 368px; margin-inline: auto; }
+}
