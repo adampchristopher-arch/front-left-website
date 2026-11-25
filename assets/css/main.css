@@ -88,11 +88,15 @@ a:focus-visible { outline: 2px solid var(--accent); outline-offset: 6px; }
 .content-entry td,.content-entry th {border:1px solid var(--border);padding:8px;}
 .content-page figure {margin:25px 0;}
 figcaption {font-size:13px;color:var(--muted-foreground);}
-.content-entry .gallery {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;}
-.content-entry .gallery__item {margin:0;min-width:0;}
+.content-entry .gallery {display:block;}
+.content-entry .gallery__item {width:100%;margin:0;min-width:0;}
+.gallery-fit-row {display:flex;align-items:flex-start;gap:0;}
+.gallery-fit-row .gallery__item {flex:none;}
+.gallery-fit-batch {display:block;}
 .content-entry .gallery__item > a {display:block;}
-.content-entry .gallery__item img {display:block;width:100%;height:auto;aspect-ratio:1;object-fit:cover;}
+.content-entry .gallery__item img {display:block;width:100%;height:auto;aspect-ratio:auto;object-fit:contain;}
 .content-entry .gallery__item figcaption {margin-top:8px;overflow-wrap:anywhere;}
+.content-entry .gallery-fit-batch figcaption {display:none;}
 .gallery-controls { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 28px; }
 .gallery-more { display: inline-flex; align-items: center; justify-content: center; min-width: 150px; min-height: 44px; padding: 10px 24px; border: 1px solid var(--nav-color); border-radius: 4px; background: var(--nav-color); color: var(--event-surface); font: inherit; font-size: 14px; cursor: pointer; }
 .gallery-more:hover { background: var(--nav-active); border-color: var(--nav-active); }
@@ -114,7 +118,7 @@ figcaption {font-size:13px;color:var(--muted-foreground);}
  .site-footer .menu-items a {font-size:10px;letter-spacing:.9px;}
  .seltzer-link {margin:0 auto;}
  .content-page {padding-bottom:160px;}
- .content-entry .gallery {gap:8px;} .content-entry .gallery__item figcaption {font-size:11px;}
+ .content-entry .gallery__item figcaption {font-size:11px;}
  .post-list {gap:12px;} .post-list h2 {font-size:16px;} .post-list .content-entry {font-size:14px;}
 }
 
@@ -160,7 +164,7 @@ figcaption {font-size:13px;color:var(--muted-foreground);}
 @media (max-width: 700px) { .team-page { padding: 145px 20px 45px; } .team-heading { margin-bottom: 35px; } .team-grid { gap: 28px 12px; } .team-member h2 { font-size: 14px; margin: 12px 0 7px; } .team-description,.team-description p { font-size: 12px; line-height: 1.5; } }
 @media (max-width: 360px) { .team-page { padding-inline: 16px; } .team-grid { column-gap: 10px; } }
 
-/* Complete artwork stays uncropped; gallery thumbnails remain square. */
+/* Complete artwork stays uncropped; gallery thumbnails use photo-wall proportions. */
 .gallery-image { display: block; width: min(100%, 1000px); height: auto; max-height: none; object-fit: contain; }
 .team-portrait-placeholder { aspect-ratio: 1; display: grid; place-items: center; background: var(--muted); color: var(--muted-foreground); padding: 12px; }
 @media (max-width: 700px) { .top-nav .menu-items > li:last-child > .submenu { left: auto; right: auto; } }

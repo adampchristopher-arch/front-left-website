@@ -41,7 +41,7 @@ window.flRunPageReady = function () {
  var main = document.getElementById('main');
  if (!main) return;
  var DOWNLOAD = /\.(?:pdf|zip|rar|7z|gz|tar|jpe?g|png|gif|webp|avif|svg|ico|mp3|wav|ogg|m4a|flac|mp4|mov|webm|txt|rtf|docx?|xlsx?|pptx?|csv|json|xml|rss|atom|webmanifest|apk|exe|dmg)$/i;
- var key = 0, scrolls = {}, busy = false;
+ var key = 0, scrolls = {}, navigation = 0;
  function remember() { scrolls[key] = window.scrollY || window.pageYOffset || 0; }
  function internalUrl(link) {
   if (link.target && link.target !== '_self') return null;
@@ -54,7 +54,6 @@ window.flRunPageReady = function () {
   try { url = new URL(href, document.baseURI); } catch (error) { return null; }
   if (url.origin !== window.location.origin) return null;
   if (DOWNLOAD.test(url.pathname)) return null;
-  if (url.pathname === window.location.pathname && url.search === window.location.search) return null;
   return url;
  }
  function apply(html) {
@@ -82,11 +81,14 @@ window.flRunPageReady = function () {
   else if (restored) window.scrollTo(0, restored);
   else window.scrollTo(0, 0);
   window.flRunPageReady();
-  busy = false;
  }
  function navigate(url, push, restored) {
-  if (busy) { window.location.href = url.href; return; }
-  busy = true;
+  var request = ++navigation;
+  var path = function (value) { return value.replace(/\/index\.html$/i, '/').replace(/\/$/, '') || '/'; };
+  if (push && path(url.pathname) === path(window.location.pathname) && url.search === window.location.search) {
+   landed(url, restored);
+   return;
+  }
   remember();
   window.fetch(url.href, { credentials: 'same-origin', headers: { Accept: 'text/html' } })
    .then(function (response) {
@@ -95,11 +97,12 @@ window.flRunPageReady = function () {
     return response.text();
    })
    .then(function (html) {
+    if (request !== navigation) return;
     if (!apply(html)) throw new Error('unexpected page');
     if (push) window.history.pushState({ fl: ++key }, '', url);
     landed(url, push ? 0 : restored);
    })
-   .catch(function () { busy = false; window.location.href = url.href; });
+   .catch(function () { if (request === navigation) window.location.href = url.href; });
  }
  document.addEventListener('click', function (event) {
   if (event.defaultPrevented || event.button !== 0) return;

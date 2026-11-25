@@ -106,6 +106,9 @@
     });
     root.insertBefore(content, source);
     source.remove();
+    galleries.forEach(function (gallery) {
+      fitBatch(gallery, Array.from(gallery.querySelectorAll('.gallery__item')));
+    });
     var shown = Math.min(BATCH, items.length);
     if (!pending.length) return;
     var controls = document.createElement('div');
@@ -128,6 +131,9 @@
         entry.gallery.hidden = false;
         entry.gallery.appendChild(entry.item);
       });
+      galleries.forEach(function (gallery) {
+        fitBatch(gallery, batch.filter(function (entry) { return entry.gallery === gallery; }).map(function (entry) { return entry.item; }));
+      });
       shown += batch.length;
       update();
       var first = batch[0];
@@ -142,6 +148,80 @@
     controls.appendChild(button);
     controls.appendChild(status);
     root.appendChild(controls);
+  }
+
+  /* Seal each revealed batch into its own rows: later batches cannot rebalance it. */
+  function fitBatch(gallery, items) {
+    if (!items.length) return;
+    var batch = document.createElement('div');
+    batch.className = 'gallery-fit-batch';
+    gallery.appendChild(batch);
+    items.forEach(function (item) { batch.appendChild(item); });
+    var images = items.map(function (item) { return item.querySelector('img'); });
+    var ready = images.map(function (image) {
+      if (!image || image.complete) return Promise.resolve();
+      image.loading = 'eager';
+      return new Promise(function (resolve) {
+        image.addEventListener('load', resolve, { once: true });
+        image.addEventListener('error', resolve, { once: true });
+      });
+    });
+    Promise.all(ready).then(function () {
+      if (!batch.isConnected) return;
+      function layout() {
+        var width = gallery.clientWidth;
+        if (!width) return;
+        /* On desktop, scale a typical phone's row composition to the full
+           gallery width instead of squeezing extra thumbnails into each row. */
+        var target = width <= 700 ? 120 : width * (120 / 340);
+        var ratios = images.map(function (image) {
+          return image && image.naturalWidth && image.naturalHeight ? image.naturalWidth / image.naturalHeight : 1;
+        });
+        /* Balance the whole batch, including the last row, rather than leaving
+           an oversized orphan after greedily filling earlier rows. */
+        var costs = new Array(items.length + 1).fill(Infinity);
+        var breaks = new Array(items.length);
+        costs[items.length] = 0;
+        for (var start = items.length - 1; start >= 0; start--) {
+          var total = 0;
+          for (var stop = start + 1; stop <= items.length; stop++) {
+            total += ratios[stop - 1];
+            var height = width / total;
+            var deviation = Math.log(height / target);
+            var score = deviation * deviation + costs[stop];
+            if (height > target * 1.5) score += Math.pow(height / target - 1.5, 2) * 10;
+            if (score < costs[start]) {
+              costs[start] = score;
+              breaks[start] = stop;
+            }
+          }
+        }
+        var index = 0;
+        while (batch.firstChild) batch.removeChild(batch.firstChild);
+        while (index < items.length) {
+          var end = breaks[index] || items.length;
+          var sum = 0;
+          for (var r = index; r < end; r++) sum += ratios[r];
+          var row = document.createElement('div');
+          row.className = 'gallery-fit-row';
+          for (var i = index; i < end; i++) {
+            items[i].style.width = (ratios[i] / sum * 100) + '%';
+            row.appendChild(items[i]);
+          }
+          batch.appendChild(row);
+          index = end;
+        }
+        batch.dataset.fitted = 'true';
+      }
+      layout();
+      if (window.ResizeObserver) {
+        var observer = new ResizeObserver(function () {
+          if (!batch.isConnected) { observer.disconnect(); return; }
+          layout();
+        });
+        observer.observe(gallery);
+      }
+    });
   }
 
   function runAll() {
