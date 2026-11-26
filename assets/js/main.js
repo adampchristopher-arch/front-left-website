@@ -137,48 +137,50 @@ window.flAudioPauseOthers = function (self) {
 /* Independent of navigation so the fallback also works without menus. */
 (() => {
  const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
- let art = null, lines = [], letters = [], points = [], frame = 0, pointer = null, touchId = null, observer = null;
+ let arts = [], frame = 0, pointer = null, touchId = null;
  function stop() {
   const id = touchId;
   touchId = null;
   pointer = null;
   if (frame) cancelAnimationFrame(frame);
   frame = 0;
-  if (id !== null && art && art.hasPointerCapture?.(id)) art.releasePointerCapture(id);
-  reset();
- }
- function reset() {
-  letters.forEach(letter => {
+  if (id !== null) arts.forEach(a => { if (a.art.hasPointerCapture?.(id)) a.art.releasePointerCapture(id); });
+  arts.forEach(a => a.letters.forEach(letter => {
    letter.style.setProperty('--mouse-x', '0px');
    letter.style.setProperty('--mouse-y', '0px');
-  });
+  }));
  }
  function measure() {
-  if (!art) return;
-  reset();
-  const configuredSize = parseFloat(getComputedStyle(art).getPropertyValue('--type-max-size'));
-  const maximum = configuredSize > 0 ? configuredSize : (window.innerWidth <= 700 ? 28 : 96);
-  lines.forEach(line => {
-   line.style.fontSize = maximum + 'px';
-   line.style.whiteSpace = 'nowrap';
-   const width = line.getBoundingClientRect().width;
-   const range = document.createRange();
-   range.selectNodeContents(line);
-   const textWidth = range.getBoundingClientRect().width;
-   if (textWidth > width && textWidth > 0) line.style.fontSize = (maximum * width / textWidth * 0.98) + 'px';
-  });
-  points = letters.map(letter => {
-   const rect = letter.getBoundingClientRect();
-   const x = parseFloat(letter.style.getPropertyValue('--mouse-x')) || 0;
-   const y = parseFloat(letter.style.getPropertyValue('--mouse-y')) || 0;
-   return { x: rect.left + rect.width / 2 - x, y: rect.top + rect.height / 2 - y };
+  if (!arts.length) return;
+  arts.forEach(a => {
+   a.letters.forEach(letter => {
+    letter.style.setProperty('--mouse-x', '0px');
+    letter.style.setProperty('--mouse-y', '0px');
+   });
+   const configuredSize = parseFloat(getComputedStyle(a.art).getPropertyValue('--type-max-size'));
+   const maximum = configuredSize > 0 ? configuredSize : (window.innerWidth <= 700 ? 28 : 96);
+   a.lines.forEach(line => {
+    line.style.fontSize = maximum + 'px';
+    line.style.whiteSpace = 'nowrap';
+    const width = line.getBoundingClientRect().width;
+    const range = document.createRange();
+    range.selectNodeContents(line);
+    const textWidth = range.getBoundingClientRect().width;
+    if (textWidth > width && textWidth > 0) line.style.fontSize = (maximum * width / textWidth * 0.98) + 'px';
+   });
+   a.points = a.letters.map(letter => {
+    const rect = letter.getBoundingClientRect();
+    const x = parseFloat(letter.style.getPropertyValue('--mouse-x')) || 0;
+    const y = parseFloat(letter.style.getPropertyValue('--mouse-y')) || 0;
+    return { x: rect.left + rect.width / 2 - x, y: rect.top + rect.height / 2 - y };
+   });
   });
  }
  function move() {
   frame = 0;
   if (!pointer || motion.matches) return;
-  letters.forEach((letter, index) => {
-   const point = points[index];
+  arts.forEach(a => a.letters.forEach((letter, index) => {
+   const point = a.points[index];
    if (!point) return;
    const dx = point.x - pointer.x;
    const dy = point.y - pointer.y;
@@ -189,7 +191,7 @@ window.flAudioPauseOthers = function (self) {
    const angle = Math.atan2(dy, dx);
    letter.style.setProperty('--mouse-x', `${Math.cos(angle) * force}px`);
    letter.style.setProperty('--mouse-y', `${Math.sin(angle) * force}px`);
-  });
+  }));
  }
  function track(event) {
   if (motion.matches) return;
@@ -209,43 +211,45 @@ window.flAudioPauseOthers = function (self) {
  window.addEventListener('scroll', measure, { passive: true });
  motion.addEventListener('change', stop);
  function initializeType() {
-  const node = document.querySelector('.type-art');
-  if (!node) {
-   if (art) { stop(); art = null; lines = []; letters = []; points = []; if (observer) { observer.disconnect(); observer = null; } }
-   return;
-  }
-  if (node.dataset.typeReady) return;
-  node.dataset.typeReady = '1';
-  art = node;
-  lines = [...art.querySelectorAll('.type-line')];
-  for (const line of lines) {
-   /* v62: artwork authored by hand (the 404 planet) keeps its own markup. */
-   if (line.hasAttribute('data-keep')) continue;
-   const words = line.textContent.trim().split(/\s+/);
-   line.replaceChildren();
-   words.forEach((word, index) => {
-    if (index) line.append(document.createTextNode(' '));
-    const span = document.createElement('span');
-    span.className = 'type-word';
-    for (const character of word) {
-     const letter = document.createElement('span');
-     letter.className = 'type-letter';
-     letter.textContent = character;
-     span.append(letter);
-    }
-    line.append(span);
-   });
-  }
-  letters = [...art.querySelectorAll('.type-letter')];
-  art.addEventListener('pointerdown', event => {
-   if (motion.matches || event.pointerType !== 'touch' || touchId !== null) return;
-   touchId = event.pointerId;
-   art.setPointerCapture?.(touchId);
-   track(event);
+  const nodes = [...document.querySelectorAll('.type-art')];
+  arts = arts.filter(a => {
+   if (nodes.includes(a.art)) return true;
+   a.observer?.disconnect();
+   return false;
   });
-  art.addEventListener('lostpointercapture', release);
-  if (observer) observer.disconnect();
-  if (typeof ResizeObserver !== 'undefined') { observer = new ResizeObserver(measure); observer.observe(art); }
+  nodes.forEach(node => {
+   if (node.dataset.typeReady) return;
+   node.dataset.typeReady = '1';
+   const art = { art: node, lines: [...node.querySelectorAll('.type-line')], letters: [], points: [], observer: null };
+   for (const line of art.lines) {
+    /* v62: artwork authored by hand (the 404 planet) keeps its own markup. */
+    if (line.hasAttribute('data-keep')) continue;
+    const words = line.textContent.trim().split(/\s+/);
+    line.replaceChildren();
+    words.forEach((word, index) => {
+     if (index) line.append(document.createTextNode(' '));
+     const span = document.createElement('span');
+     span.className = 'type-word';
+     for (const character of word) {
+      const letter = document.createElement('span');
+      letter.className = 'type-letter';
+      letter.textContent = character;
+      span.append(letter);
+     }
+     line.append(span);
+    });
+   }
+   art.letters = [...node.querySelectorAll('.type-letter')];
+   node.addEventListener('pointerdown', event => {
+    if (motion.matches || event.pointerType !== 'touch' || touchId !== null) return;
+    touchId = event.pointerId;
+    node.setPointerCapture?.(touchId);
+    track(event);
+   });
+   node.addEventListener('lostpointercapture', release);
+   if (typeof ResizeObserver !== 'undefined') { art.observer = new ResizeObserver(measure); art.observer.observe(node); }
+   arts.push(art);
+  });
   measure();
   document.fonts?.ready.then(measure);
  }
@@ -278,7 +282,6 @@ window.flAudioPauseOthers = function (self) {
     });
     return apiPromise;
   }
-  window.flLoadSoundCloudApi = loadApi;
   function build(box) {
     if (box.dataset.scBuilt) return;
     box.dataset.scBuilt = '1';
@@ -380,44 +383,6 @@ window.flAudioPauseOthers = function (self) {
     }).catch(function () { clearTimeout(loadingTimer); unavailable(); });
   }
   function init() { document.querySelectorAll('.soundcloud-player[data-soundcloud]').forEach(build); }
-  (window.flPageReady = window.flPageReady || []).push(init);
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
-})();
-
-/* v62: the 404 page carries its own visible mix player, independent of the sitewide frame. */
-(function () {
-  function normalize(raw) {
-    var match = raw.match(/src=["']([^"']+)["']/i);
-    if (match) raw = match[1].replace(/&amp;/g, '&');
-    var url = new URL(raw);
-    if (url.hostname === 'w.soundcloud.com') { raw = url.searchParams.get('url') || raw; url = new URL(raw); }
-    if (url.protocol !== 'https:' || !/(^|\.)soundcloud\.com$/.test(url.hostname)) throw new Error('Invalid SoundCloud link');
-    return url.origin + url.pathname;
-  }
-  function buildMix(box) {
-    if (box.dataset.mixBuilt) return;
-    box.dataset.mixBuilt = '1';
-    var raw = (box.getAttribute('data-soundcloud') || '').trim();
-    try { raw = normalize(raw); } catch (error) { box.remove(); return; }
-    var frame = document.createElement('iframe');
-    frame.className = 'error-mix-frame';
-    frame.title = 'Mixes player';
-    frame.allow = 'autoplay; encrypted-media';
-    frame.setAttribute('scrolling', 'no');
-    frame.setAttribute('frameborder', 'no');
-    frame.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(raw) + '&color=%23c6ff00&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true';
-    box.appendChild(frame);
-    var widget = null, playing = false;
-    var mix = window.flAudioRegister({ isPlaying: function () { return playing; }, pause: function () { if (widget) widget.pause(); } });
-    if (!window.flLoadSoundCloudApi) return;
-    window.flLoadSoundCloudApi().then(function (SC) {
-      widget = SC.Widget(frame);
-      widget.bind(SC.Widget.Events.PLAY, function () { playing = true; window.flAudioPauseOthers(mix); });
-      widget.bind(SC.Widget.Events.PAUSE, function () { playing = false; });
-      widget.bind(SC.Widget.Events.FINISH, function () { playing = false; });
-    }).catch(function () { /* the card still plays through its own controls */ });
-  }
-  function init() { document.querySelectorAll('.error-mix[data-soundcloud]').forEach(buildMix); }
   (window.flPageReady = window.flPageReady || []).push(init);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
