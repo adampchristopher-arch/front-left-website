@@ -222,8 +222,6 @@ window.flAudioPauseOthers = function (self) {
    node.dataset.typeReady = '1';
    const art = { art: node, lines: [...node.querySelectorAll('.type-line')], letters: [], points: [], observer: null };
    for (const line of art.lines) {
-    /* v62: artwork authored by hand (the 404 planet) keeps its own markup. */
-    if (line.hasAttribute('data-keep')) continue;
     const words = line.textContent.trim().split(/\s+/);
     line.replaceChildren();
     words.forEach((word, index) => {
