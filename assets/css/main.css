@@ -476,3 +476,8 @@ html.photo-viewer-open { overflow: hidden; }
 .error-home { display:inline-flex; align-items:center; gap:12px; min-height:44px; padding:8px 0; border-bottom:1px solid var(--nav-color); color:var(--nav-color); }
 .error-home:hover { color:var(--nav-active); border-color:var(--nav-active); }
 @media (max-width:700px) { .error-page { padding:100px 20px 70px; gap:14px; } .error-headline { --type-max-size:30; padding:6px 12px 2px; } .error-message { font-size:14px; } }
+
+/* v66: centre the crossword between the shared navigation and footer. */
+.crossword-page { min-height:calc(100svh - 75px); display:flex; align-items:center; justify-content:center; padding:140px 24px 65px; }
+.crossword-frame { display:block; width:min(100%,1000px); height:620px; flex:none; border:1px solid var(--border); border-radius:8px; background:var(--background); }
+@media (max-width:700px) { .crossword-page { padding:84px 16px 24px; } }
