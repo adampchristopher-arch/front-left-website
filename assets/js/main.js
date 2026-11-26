@@ -34,6 +34,16 @@ window.flRunPageReady = function () {
  (window.flPageReady || []).forEach(function (fn) { try { fn(); } catch (error) { /* a broken module must not stop browsing */ } });
 };
 
+/* v62: only one mix may be audible at a time — the sitewide frame and the 404 page player pause each other. */
+window.flAudioMixes = window.flAudioMixes || [];
+window.flAudioRegister = function (mix) { window.flAudioMixes.push(mix); return mix; };
+window.flAudioPauseOthers = function (self) {
+  window.flAudioMixes.forEach(function (mix) {
+    if (mix === self) return;
+    try { if (mix.isPlaying()) mix.pause(); } catch (error) { /* a dead frame must not block the rest */ }
+  });
+};
+
 /* v51: internal links swap only the content area, so the layout — and the music frame inside it — never reloads. */
 (function () {
  if (!(window.history && window.history.pushState && window.fetch && window.DOMParser)) return;
@@ -146,7 +156,8 @@ window.flRunPageReady = function () {
  function measure() {
   if (!art) return;
   reset();
-  const maximum = window.innerWidth <= 700 ? 28 : 96;
+  const configuredSize = parseFloat(getComputedStyle(art).getPropertyValue('--type-max-size'));
+  const maximum = configuredSize > 0 ? configuredSize : (window.innerWidth <= 700 ? 28 : 96);
   lines.forEach(line => {
    line.style.fontSize = maximum + 'px';
    line.style.whiteSpace = 'nowrap';
@@ -208,6 +219,8 @@ window.flRunPageReady = function () {
   art = node;
   lines = [...art.querySelectorAll('.type-line')];
   for (const line of lines) {
+   /* v62: artwork authored by hand (the 404 planet) keeps its own markup. */
+   if (line.hasAttribute('data-keep')) continue;
    const words = line.textContent.trim().split(/\s+/);
    line.replaceChildren();
    words.forEach((word, index) => {
@@ -265,6 +278,7 @@ window.flRunPageReady = function () {
     });
     return apiPromise;
   }
+  window.flLoadSoundCloudApi = loadApi;
   function build(box) {
     if (box.dataset.scBuilt) return;
     box.dataset.scBuilt = '1';
@@ -273,6 +287,7 @@ window.flRunPageReady = function () {
     var track = document.querySelector('.soundcloud-track');
     var mobile = window.matchMedia('(max-width: 700px)');
     var ready = false, playing = false, pending = 0, widget;
+    var mix = null;
     var titleRequest = 0;
     function updateTrack() {
       if (!track) return;
@@ -296,6 +311,7 @@ window.flRunPageReady = function () {
     }
     function state(isPlaying) {
       clearPending(); playing = isPlaying;
+      if (isPlaying && mix) window.flAudioPauseOthers(mix);
       if (button) button.setAttribute('aria-pressed', String(isPlaying));
       label(isPlaying ? 'Pause music' : 'Play music');
       if (status) status.textContent = isPlaying ? 'Music playing' : 'Music paused';
@@ -328,6 +344,7 @@ window.flRunPageReady = function () {
     var loadingTimer = setTimeout(unavailable, 30000);
     loadApi().then(function (SC) {
       widget = SC.Widget(frame);
+      mix = window.flAudioRegister({ isPlaying: function () { return playing; }, pause: function () { widget.pause(); } });
       widget.bind(SC.Widget.Events.PLAY, function () { state(true); });
       widget.bind(SC.Widget.Events.PAUSE, function () { state(false); });
       widget.bind(SC.Widget.Events.FINISH, function () { state(false); });
@@ -363,6 +380,44 @@ window.flRunPageReady = function () {
     }).catch(function () { clearTimeout(loadingTimer); unavailable(); });
   }
   function init() { document.querySelectorAll('.soundcloud-player[data-soundcloud]').forEach(build); }
+  (window.flPageReady = window.flPageReady || []).push(init);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+
+/* v62: the 404 page carries its own visible mix player, independent of the sitewide frame. */
+(function () {
+  function normalize(raw) {
+    var match = raw.match(/src=["']([^"']+)["']/i);
+    if (match) raw = match[1].replace(/&amp;/g, '&');
+    var url = new URL(raw);
+    if (url.hostname === 'w.soundcloud.com') { raw = url.searchParams.get('url') || raw; url = new URL(raw); }
+    if (url.protocol !== 'https:' || !/(^|\.)soundcloud\.com$/.test(url.hostname)) throw new Error('Invalid SoundCloud link');
+    return url.origin + url.pathname;
+  }
+  function buildMix(box) {
+    if (box.dataset.mixBuilt) return;
+    box.dataset.mixBuilt = '1';
+    var raw = (box.getAttribute('data-soundcloud') || '').trim();
+    try { raw = normalize(raw); } catch (error) { box.remove(); return; }
+    var frame = document.createElement('iframe');
+    frame.className = 'error-mix-frame';
+    frame.title = 'Mixes player';
+    frame.allow = 'autoplay; encrypted-media';
+    frame.setAttribute('scrolling', 'no');
+    frame.setAttribute('frameborder', 'no');
+    frame.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(raw) + '&color=%23c6ff00&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true';
+    box.appendChild(frame);
+    var widget = null, playing = false;
+    var mix = window.flAudioRegister({ isPlaying: function () { return playing; }, pause: function () { if (widget) widget.pause(); } });
+    if (!window.flLoadSoundCloudApi) return;
+    window.flLoadSoundCloudApi().then(function (SC) {
+      widget = SC.Widget(frame);
+      widget.bind(SC.Widget.Events.PLAY, function () { playing = true; window.flAudioPauseOthers(mix); });
+      widget.bind(SC.Widget.Events.PAUSE, function () { playing = false; });
+      widget.bind(SC.Widget.Events.FINISH, function () { playing = false; });
+    }).catch(function () { /* the card still plays through its own controls */ });
+  }
+  function init() { document.querySelectorAll('.error-mix[data-soundcloud]').forEach(buildMix); }
   (window.flPageReady = window.flPageReady || []).push(init);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
