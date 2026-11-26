@@ -478,14 +478,14 @@ html.photo-viewer-open { overflow: hidden; }
 @media (max-width:700px) { .error-page { padding:100px 20px 70px; gap:14px; } .error-headline { --type-max-size:30; padding:6px 12px 2px; } .error-message { font-size:14px; } }
 
 /* v67: native crossword styled with the site's colours on the shared background. */
-.crossword-page { min-height:calc(100svh - 75px); display:flex; align-items:center; justify-content:center; padding:140px 24px 90px; }
+.crossword-page { flex:1 1 auto; min-height:0; display:flex; align-items:center; justify-content:center; padding:130px 24px 24px; }
 .fl-crossword { display:flex; gap:40px; align-items:flex-start; justify-content:center; width:min(100%,1200px); }
 .xw-play { flex:none; display:flex; flex-direction:column; gap:12px; max-width:100%; }
 .xw-bar { display:flex; justify-content:space-between; align-items:center; gap:16px; min-height:44px; padding:8px 14px; border:1px solid var(--nav-color); border-radius:4px; color:var(--nav-color); font-size:14px; letter-spacing:.5px; }
 .xw-current { margin:0; text-transform:uppercase; }
 .xw-progress { font-variant-numeric:tabular-nums; opacity:.8; }
 .xw-scroll { overflow-x:auto; max-width:100%; }
-.xw-board { --cell:clamp(12px, calc((100vw - 48px - (var(--cols) - 1) * 2px) / var(--cols)), 30px); display:grid; grid-template-columns:repeat(var(--cols), var(--cell)); gap:2px; }
+.xw-board { --cell:clamp(12px, calc((100vw - 48px - (var(--cols) - 1) * 2px) / var(--cols)), 26px); display:grid; grid-template-columns:repeat(var(--cols), var(--cell)); gap:2px; }
 .xw-sq { position:relative; width:var(--cell); height:var(--cell); }
 .xw-sq:not(.is-block) { border:1px solid var(--foreground); background:oklch(0.05 0.015 130 / 45%); }
 .xw-sq.in-word { background:oklch(0.9 0.24 125 / 22%); border-color:var(--nav-color); }
@@ -499,12 +499,14 @@ html.photo-viewer-open { overflow: hidden; }
 .xw-actions { display:flex; flex-wrap:wrap; gap:8px; }
 .xw-actions button { min-height:36px; padding:6px 14px; border:1px solid var(--nav-color); border-radius:20px; background:transparent; color:var(--nav-color); font:inherit; font-size:12px; letter-spacing:1px; text-transform:uppercase; cursor:pointer; }
 .xw-actions button:hover { background:var(--nav-color); color:#000; }
-.xw-clues { display:grid; grid-template-columns:1fr 1fr; gap:28px; flex:1; max-width:520px; max-height:calc(100svh - 230px); overflow:auto; }
+.xw-clues { display:grid; grid-template-columns:1fr 1fr; gap:28px; flex:1; max-width:520px; max-height:calc(100svh - 250px); overflow:auto; }
 .xw-clues h2 { margin:0 0 10px; color:var(--nav-color); font-size:16px; letter-spacing:2px; text-transform:uppercase; font-weight:400; }
 .xw-clues ol { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px; }
 .xw-clue { font-size:13px; line-height:1.4; color:var(--muted-foreground); cursor:pointer; padding:3px 6px; border-left:2px solid transparent; }
 .xw-clue b { color:var(--foreground); margin-right:4px; }
 .xw-clue:hover { color:var(--foreground); }
 .xw-clue.is-active { border-left-color:var(--nav-active); color:var(--foreground); }
+/* v68: on desktop the grid also shrinks to the screen height so the page never scrolls. */
+@media (min-width:1001px) { .xw-board { --cell:clamp(12px, min(calc((100svh - 400px) / var(--rows, 22)), calc((100vw - 48px - (var(--cols) - 1) * 2px) / var(--cols))), 26px); } }
 @media (max-width:1000px) { .fl-crossword { flex-direction:column; align-items:center; } .xw-clues { max-height:none; max-width:100%; width:100%; } }
 @media (max-width:700px) { .crossword-page { padding:90px 12px 60px; } .xw-bar { font-size:12px; } .xw-board { --cell:calc((100vw - 24px - (var(--cols) - 1) * 2px) / var(--cols)); } .xw-clues { grid-template-columns:1fr; gap:20px; } }

@@ -16,6 +16,7 @@
   var saved = {}; try { saved = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) {}
   var grid = root.querySelector('.xw-board'), inputs = {};
   grid.style.setProperty('--cols', W);
+  grid.style.setProperty('--rows', H);
   for (r = 0; r < H; r++) for (c = 0; c < W; c++) {
    var cell = document.createElement('div'), id = r + ',' + c;
    cell.className = 'xw-sq';
@@ -77,7 +78,6 @@
   var actions = {
    'check-word': function () { mark(curWord()); },
    'check-all': function () { mark(Object.keys(inputs)); var done = Object.keys(inputs).every(function (k) { return inputs[k].value === answer(k); }); if (done) root.querySelector('.xw-current').textContent = 'Solved — nice one!'; },
-   'reveal-word': function () { curWord().forEach(function (id) { inputs[id].value = answer(id); }); save(); },
    'clear': function () { Object.keys(inputs).forEach(function (k) { inputs[k].value = ''; inputs[k].parentNode.classList.remove('is-wrong', 'is-right'); }); save(); }
   };
   root.querySelectorAll('[data-xw]').forEach(function (b) { b.addEventListener('click', function () { actions[b.dataset.xw](); if (cur) inputs[cur].focus(); }); });
